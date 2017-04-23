@@ -11,70 +11,67 @@
 
 import time
 import subprocess
-import RPi.GPIO as GPIO
 from twython import Twython
 
-#setup GPIO using Broadcom SOC channel numbering
-GPIO.setmode(GPIO.BCM)
-BUTTON = 12 
-SYSTEM_READY = 26 # indicates that program is ready to be run
-SYSTEM_RUNNING = 13 # indicates that program is running
-
-GPIO.setup(SYSTEM_READY, GPIO.OUT) 
-GPIO.setup(SYSTEM_RUNNING, GPIO.OUT) 
-GPIO.setup(BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+from gpio_pin_setup import *
 
 IMG_WIDTH = "1280"
 IMG_HEIGHT = "720"
 IMG_NAME = "tweet-pic.jpg"
+ROTATE = "180"
 
 # your twitter app keys goes here
-apiKey = '' # put twitter API Key here
-apiSecret = '' # put twitter API Secret here
-accessToken = '' # twitter access token here
-accessTokenSecret = '' # twitter access token secret
+from secrets import *
 
 # this is the command to capture the image using pi camera
-snapCommand = "raspistill -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT + " -o " + IMG_NAME
+snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT + " -o " + IMG_NAME
+
+start_leds()
 
 api = Twython(apiKey,apiSecret,accessToken,accessTokenSecret)
 
-GPIO.output(SYSTEM_READY, True) # set ready LED to on
-GPIO.output(SYSTEM_RUNNING, False) # working LED to off
-print "System Ready - push button to take picture and tweet.\n"
+print("System Ready - push button to take picture and tweet.\n")
+led_ready()
 
 try:
     while True:
         GPIO.wait_for_edge(BUTTON, GPIO.RISING)
         
-        print "Program running...\n"
-        GPIO.output(SYSTEM_READY, False) # signal program not ready
-        GPIO.output(SYSTEM_RUNNING, True) 
+        print("Program running...\n")
+        for num in [3,2,1]:
+            print(num)
+            led_black()
+            time.sleep(1)
+            led_count_down()
+            time.sleep(1)
         
-        print "Capturing photo...\n"
+        print("Capturing photo...\n")
+        led_taking_photo()
         ret = subprocess.call(snapCommand, shell=True)
         photo = open(IMG_NAME, 'rb')
         
-        print "Uploading photo to twitter...\n"
+        print("Uploading photo to twitter...\n")
+        led_tweeting()
         media_status = api.upload_media(media=photo)
         
         time_now = time.strftime("%H:%M:%S") # get current time
         date_now =  time.strftime("%d/%m/%Y") # get current date
-        tweet_txt = "Photo captured by @twybot at " + time_now + " on " + date_now
+        tweet_txt = "Photo captured by @DoorRobot"
         
-        print "Posting tweet with picture...\n"
+        print("Posting tweet with picture...\n")
+        led_processing()
         api.update_status(media_ids=[media_status['media_id']], status=tweet_txt)
         
         #deprecated method replaced by upload_media() and update_status()
         #api.update_status_with_media(media=photo, status=tweetStr)
         
-        GPIO.output(SYSTEM_RUNNING, False) 
-        GPIO.output(SYSTEM_READY, True) # signal program ready
-        print "Done - System ready again.\n"
+        print("Done - System ready again.\n")
+        led_ready()
 
 except KeyboardInterrupt:
-    GPIO.output(SYSTEM_READY_LED,False)
+    led_black()
     GPIO.cleanup()
 
 finally:
+    stop_leds()
     GPIO.cleanup() # ensures a clean exit
