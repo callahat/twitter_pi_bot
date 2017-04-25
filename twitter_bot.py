@@ -9,6 +9,7 @@
 # You can also reach me @haldas on twitter or +Mike Haldas on Google+
 # If you make any improvements to this code or use it in a cool way, please let me know
 
+import os
 import time
 import subprocess
 from twython import Twython
@@ -24,7 +25,8 @@ ROTATE = "180"
 from secrets import *
 
 # this is the command to capture the image using pi camera
-snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT + " -o " + IMG_NAME
+#snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT + " -o " + IMG_NAME
+snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT
 
 start_leds()
 
@@ -36,6 +38,12 @@ led_ready()
 try:
     while True:
         GPIO.wait_for_edge(BUTTON, GPIO.RISING)
+
+        capture_time = time.strftime("%Y-%m-%d_%H-%M-%S")
+        image_folder = './{:s}'.format(capture_time)
+
+        print("Making image folder")
+        os.makedirs(image_folder)
         
         print("Program running...\n")
         for num in [3,2,1]:
@@ -45,22 +53,27 @@ try:
             led_count_down()
             time.sleep(1)
         
-        print("Capturing photo...\n")
-        led_taking_photo()
-        ret = subprocess.call(snapCommand, shell=True)
-        photo = open(IMG_NAME, 'rb')
+        print("Capturing photos...\n")
+        for i in [1,2,3,4]:
+            led_taking_photo()
+            print("{:d} picture".format(i))
+            ret = subprocess.call(snapCommand + " -o " + image_folder + "/{:d}.jpg".format(i), shell=True)
+            led_black()
+            time.sleep(1)
         
-        print("Uploading photo to twitter...\n")
+        print("Uploading photos to twitter...\n")
         led_tweeting()
-        media_status = api.upload_media(media=photo)
+        media_ids = []
+        for i in [1,2,3,4]:
+            photo = open(image_folder + "/{:d}.jpg".format(i), 'rb')
+            media_status = api.upload_media(media=photo)
+            media_ids.append(media_status['media_id'])
         
-        time_now = time.strftime("%H:%M:%S") # get current time
-        date_now =  time.strftime("%d/%m/%Y") # get current date
-        tweet_txt = "Photo captured by @DoorRobot"
+        tweet_txt = "Photos captured by @DoorRobot"
         
-        print("Posting tweet with picture...\n")
+        print("Posting tweet with pictures...\n")
         led_processing()
-        api.update_status(media_ids=[media_status['media_id']], status=tweet_txt)
+        api.update_status(media_ids=media_ids, status=tweet_txt)
         
         #deprecated method replaced by upload_media() and update_status()
         #api.update_status_with_media(media=photo, status=tweetStr)
