@@ -13,20 +13,21 @@ import os
 import time
 import subprocess
 from twython import Twython
+from picamera import PiCamera
 
 from gpio_pin_setup import *
 
-IMG_WIDTH = "1280"
-IMG_HEIGHT = "720"
-IMG_NAME = "tweet-pic.jpg"
-ROTATE = "180"
+c = PiCamera()
+c.resolution = (1280,720)
+c.sensor_mode = 3
+c.shutter_speed = 6000000
+c.framerate = 0.166667
+c.rotation = 180
 
 # your twitter app keys goes here
 from secrets import *
 
 # this is the command to capture the image using pi camera
-#snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT + " -o " + IMG_NAME
-snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT
 
 start_leds()
 
@@ -53,11 +54,14 @@ try:
             led_count_down()
             time.sleep(1)
         
+        led_black()
+        time.sleep(1)
+        
         print("Capturing photos...\n")
         for i in [1,2,3,4]:
             led_taking_photo()
             print("{:d} picture".format(i))
-            ret = subprocess.call(snapCommand + " -o " + image_folder + "/{:d}.jpg".format(i), shell=True)
+            c.capture( image_folder + "/{:d}.jpg".format(i) )
             led_black()
             time.sleep(1)
         
@@ -88,3 +92,4 @@ except KeyboardInterrupt:
 finally:
     stop_leds()
     GPIO.cleanup() # ensures a clean exit
+    c.close()
