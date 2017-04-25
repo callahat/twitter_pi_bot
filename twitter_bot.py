@@ -19,10 +19,32 @@ from gpio_pin_setup import *
 
 c = PiCamera()
 c.resolution = (1280,720)
-c.sensor_mode = 3
-c.shutter_speed = 6000000
-c.framerate = 0.166667
 c.rotation = 180
+
+#setup
+#c.framerate = 30
+# Give the camera's auto-exposure and auto-white-balance algorithms
+# some time to measure the scene and determine appropriate values
+#c.ISO = 800
+#time.sleep(6)
+# Now fix the values
+#c.shutter_speed = c.exposure_speed
+#c.exposure_mode = 'off'
+#g = c.awb_gains
+#c.awb_mode = 'off'
+#c.awb_gains = g
+#end setup
+
+#low light
+c.framerate = 0.16667
+c.shutter_speed = 3000000
+c.exposure_mode = 'off'
+c.ISO = 800
+# Give the camera a good long time to measure AWB
+# (you may wish to use fixed AWB instead)
+time.sleep(10)
+# end low light
+
 
 # your twitter app keys goes here
 from secrets import *
