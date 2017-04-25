@@ -18,14 +18,12 @@ from gpio_pin_setup import *
 
 IMG_WIDTH = "1280"
 IMG_HEIGHT = "720"
-IMG_NAME = "tweet-pic.jpg"
 ROTATE = "180"
 
 # your twitter app keys goes here
 from secrets import *
 
 # this is the command to capture the image using pi camera
-#snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT + " -o " + IMG_NAME
 snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT
 
 start_leds()
@@ -52,6 +50,9 @@ try:
             time.sleep(1)
             led_count_down()
             time.sleep(1)
+        
+        led_black()
+        time.sleep(1)
         
         print("Capturing photos...\n")
         for i in [1,2,3,4]:
