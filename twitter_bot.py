@@ -34,7 +34,7 @@ try:
         GPIO.wait_for_edge(BUTTON, GPIO.RISING)
 
         capture_time = time.strftime("%Y-%m-%d_%H-%M-%S")
-        image_folder = './{:s}'.format(capture_time)
+        image_folder = './images/{:s}'.format(capture_time)
 
         print("Making image folder")
         os.makedirs(image_folder)
