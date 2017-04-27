@@ -32,19 +32,19 @@ def color_led(r, g, b):
     BLUE_LED.ChangeDutyCycle(b)
 
 def led_ready():
-    color_led(0, 100, 0)
+    color_led(0, 50, 0)
 
 def led_count_down():
-    color_led(100,100,0)
+    color_led(50,50,0)
 
 def led_taking_photo():
-    color_led(100,0,0)
+    color_led(50,0,0)
 
 def led_processing():
-    color_led(0,100,100)
+    color_led(0,50,50)
 
 def led_tweeting():
-    color_led(0,0,100)
+    color_led(0,0,50)
 
 def led_black():
     color_led(0,0,0)
