@@ -29,12 +29,14 @@ api = Twython(apiKey,apiSecret,accessToken,accessTokenSecret)
 print("System Ready - push button to take picture and tweet.\n")
 led_ready()
 
+working_path = os.path.dirname(os.path.abspath(__file__))
+
 try:
     while True:
         GPIO.wait_for_edge(BUTTON, GPIO.RISING)
 
         capture_time = time.strftime("%Y-%m-%d_%H-%M-%S")
-        image_folder = './images/{:s}'.format(capture_time)
+        image_folder = working_path + '/images/{:s}'.format(capture_time)
 
         print("Making image folder")
         os.makedirs(image_folder)
