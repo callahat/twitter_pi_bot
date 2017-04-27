@@ -16,15 +16,11 @@ from twython import Twython
 
 from gpio_pin_setup import *
 
-IMG_WIDTH = "1280"
-IMG_HEIGHT = "720"
-ROTATE = "180"
-
 # your twitter app keys goes here
 from secrets import *
 
-# this is the command to capture the image using pi camera
-snapCommand = "raspistill -rot " + ROTATE +  " -w " + IMG_WIDTH +  " -h " + IMG_HEIGHT
+from imageViaRaspistill import *
+#from imageViaPicam import *
 
 start_leds()
 
@@ -58,7 +54,7 @@ try:
         for i in [1,2,3,4]:
             led_taking_photo()
             print("{:d} picture".format(i))
-            ret = subprocess.call(snapCommand + " -o " + image_folder + "/{:d}.jpg".format(i), shell=True)
+            captureImage(image_folder + "/{:d}.jpg".format(i))
             led_black()
             time.sleep(1)
         
