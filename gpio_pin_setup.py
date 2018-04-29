@@ -6,11 +6,13 @@ BUTTON = 12
 GREEN = SYSTEM_READY      = 26 # indicates that program is ready to be run - GREEN
 RED   = SYSTEM_RUNNING    = 13 # indicates that program is running - RED
 BLUE  = SYSTEM_PROCESSING = 16 # indicates something
+SHUTDOWN = 21
 
 GPIO.setup(RED, GPIO.OUT) 
 GPIO.setup(GREEN, GPIO.OUT) 
 GPIO.setup(BLUE, GPIO.OUT) 
 GPIO.setup(BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(SHUTDOWN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 GREEN_LED = GPIO.PWM(GREEN, 60)
 RED_LED   = GPIO.PWM(RED, 60)

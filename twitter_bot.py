@@ -10,8 +10,10 @@
 # If you make any improvements to this code or use it in a cool way, please let me know
 
 import os
+import shutil
 import time
 import subprocess
+import signal
 from twython import Twython
 
 from gpio_pin_setup import *
@@ -22,6 +24,13 @@ from secrets import *
 from imageViaRaspistill import *
 #from imageViaPicam import *
 
+def handler(signum, frame):
+    print(1)
+    raise(Exception('Upload took too much time; Twitter unreachable?'))
+
+# Three signal for signaling
+signal.signal(signal.SIGALRM, handler)
+
 start_leds()
 
 api = Twython(apiKey,apiSecret,accessToken,accessTokenSecret)
@@ -30,14 +39,23 @@ print("System Ready - push button to take picture and tweet.\n")
 led_ready()
 
 working_path = os.path.dirname(os.path.abspath(__file__))
+print("working path:")
+print(working_path)
+
+uploaded_folder = working_path + '/images/uploaded/'
+print("uploaded folder:")
+print(uploaded_folder)
+
+if not os.path.exists(uploaded_folder):
+    os.makedirs(uploaded_folder)
 
 try:
     while True:
         GPIO.wait_for_edge(BUTTON, GPIO.RISING)
-
+        
         capture_time = time.strftime("%Y-%m-%d_%H-%M-%S")
-        image_folder = working_path + '/images/{:s}'.format(capture_time)
-
+        image_folder = working_path + '/images/fresh/{:s}'.format(capture_time)
+        
         print("Making image folder")
         os.makedirs(image_folder)
         
@@ -60,19 +78,33 @@ try:
             led_black()
             time.sleep(1)
         
-        print("Uploading photos to twitter...\n")
-        led_tweeting()
-        media_ids = []
-        for i in [1,2,3,4]:
-            photo = open(image_folder + "/{:d}.jpg".format(i), 'rb')
-            media_status = api.upload_media(media=photo)
-            media_ids.append(media_status['media_id'])
+        # If twitter is unavailable/network connection down, twython tries forever
+        signal.alarm(10)
         
-        tweet_txt = "Photos captured by @DoorRobot"
+        try:
+            print("Uploading photos to twitter...\n")
+            led_tweeting()
+            media_ids = []
+            for i in [1,2,3,4]:
+                photo = open(image_folder + "/{:d}.jpg".format(i), 'rb')
+                media_status = api.upload_media(media=photo)
+                media_ids.append(media_status['media_id'])
+            
+            tweet_txt = "Photos captured by @DoorRobot"
+            
+            print("Posting tweet with pictures...\n")
+            led_processing()
+            api.update_status(media_ids=media_ids, status=tweet_txt)
+            
+            print("Moving uploaded images to uploaded folder")
+            shutil.move(image_folder, uploaded_folder + "/.")
         
-        print("Posting tweet with pictures...\n")
-        led_processing()
-        api.update_status(media_ids=media_ids, status=tweet_txt)
+        except:
+            print("Took too long to send to twitter; netwrok or twitter down?")
+            print(2)
+        
+        # Disable the alarm, past the potentially rough area
+        signal.alarm(0)
         
         #deprecated method replaced by upload_media() and update_status()
         #api.update_status_with_media(media=photo, status=tweetStr)
