@@ -13,6 +13,7 @@ def handler(signum, frame):
 # Three signal for signaling
 signal.signal(signal.SIGALRM, handler)
 
+api = Twython(apiKey,apiSecret,accessToken,accessTokenSecret)
 
 print("Running uploader...")
 working_path = os.path.dirname(os.path.abspath(__file__))
